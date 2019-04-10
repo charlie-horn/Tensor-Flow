@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import matplotlib.pyplot as plt
 
 np.random.seed(101)
 tf.set_random_seed(101)
@@ -21,17 +22,35 @@ with tf.Session() as sess:
 n_features = 10
 n_dense_neurons = 3
 
-x = tf.placeholder(tf.float32,(None,n_features))
-W = tf.Variable(tf.random_normal([n_features, n_dense_neurons]))
+x_data = np.linspace(0,10,10) + np.random.uniform(-1.5,1.5,10)
+y_data = np.linspace(0,10,10) + np.random.uniform(-1.5,1.5,10)
 
-b = tf.Variable(tf.ones([n_dense_neurons]))
+m = tf.Variable(np.random.rand(1))
+b = tf.Variable(np.random.rand(1))
 
-xW = tf.matmul(x,W)
-z = tf.add(xW,b)
-a = tf.sigmoid(z)
+error = 0
+
+for x,y in zip(x_data, y_data):
+    y_hat = m*x + b
+
+    error += (y-y_hat)**2
+
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
+train = optimizer.minimize(error)
+
 init = tf.global_variables_initializer()
 
 with tf.Session() as sess:
     sess.run(init)
-    layer_out = sess.run(a,feed_dict={x:np.random.random([1,n_features])})
+    epochs = 0
+    for i in range(epochs):
+        sess.run(train)
 
+    final_slope, final_intercept = sess.run([m,b])
+
+x_test = np.linspace(-1,11,10)
+y_pred = final_slope*x_test + final_intercept
+
+plt.plot(x_test,y_pred,'r')
+plt.plot(x_data,y_data)
+plt.show()
