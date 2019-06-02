@@ -22,7 +22,7 @@ class TimeSeriesData():
         # Convert to be on time series
         ts_start = rand_start * (self.xmax- self.xmin - (steps*self.resolution) )
         
-        # Create batch Time Series on t axis
+         # Create batch Time Series on t axis
         batch_ts = ts_start + np.arange(0.0,steps+1) * self.resolution
         
         # Create Y data for time series in the batches
@@ -54,4 +54,56 @@ def single_training_instance_plot():
     train.plot(train_inst[:-1], ts_data.ret_true(train_inst[:-1]), "bo", markersize=15,alpha=0.5 ,label="instance")
     train.plot(train_inst[1:], ts_data.ret_true(train_inst[1:]), "*", markersize=7, label="target")
 
-single_training_instance_plot()
+def plot_batch(X,Y_true,Y,outputs,mse):
+
+    plt.plot(X[1:],Y_true, "bo", markersize=15,alpha=0.5 ,label="Desired Output")
+    plt.plot(X[:-1],Y, "*", markersize=7, label="Inputs")
+    plt.plot(X[1:],Y, "+", markersize=7, label="Output")
+    plt.legend()
+    title = "MSE: " + str(mse)
+    plt.title(title)
+    plt.show()
+    plt.close()
+
+# single_training_instance_plot()
+
+tf.reset_default_graph()
+
+ts_data = TimeSeriesData(250,0,10)
+num_inputs = 1
+num_time_steps = 30
+num_neurons = 100
+num_outputs = 1
+learning_rate = 0.0001
+num_train_iterations = 2000
+batch_size = 1
+
+X = tf.placeholder(tf.float32, [None, num_time_steps, num_inputs])
+y = tf.placeholder(tf.float32, [None, num_time_steps, num_outputs])
+
+cell = tf.contrib.rnn.OutputProjectionWrapper(tf.contrib.rnn.BasicRNNCell(num_units=num_neurons, activation=tf.nn.relu),output_size=num_outputs)
+
+outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
+
+loss = tf.reduce_mean(tf.square(outputs - y)) # MSE
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+train = optimizer.minimize(loss)
+
+init = tf.global_variables_initializer()
+
+saver = tf.train.Saver()
+
+with tf.Session() as sess:
+    sess.run(init)
+    
+    for iteration in range(num_train_iterations):
+        
+        X_batch, y_batch, x_vals = ts_data.next_batch(batch_size, num_time_steps, return_batch_ts=True)
+        sess.run(train, feed_dict={X: X_batch, y: y_batch})
+        
+        if iteration % 100 == 0:
+            mse = loss.eval(feed_dict={X: X_batch, y: y_batch})
+            plot_batch(x_vals.flatten(),y_batch.flatten(),X_batch.flatten(),outputs,mse)
+            #print(iteration, "\tMSE: ", mse)
+
+    #saver.save(sess, "./rnn_time_series_model")
