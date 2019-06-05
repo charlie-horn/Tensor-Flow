@@ -54,11 +54,10 @@ def single_training_instance_plot():
     train.plot(train_inst[:-1], ts_data.ret_true(train_inst[:-1]), "bo", markersize=15,alpha=0.5 ,label="instance")
     train.plot(train_inst[1:], ts_data.ret_true(train_inst[1:]), "*", markersize=7, label="target")
 
-def plot_batch(X,Y_true,Y,outputs,mse):
+def plot_batch(X,Y_true,Y_pred,mse):
 
     plt.plot(X[1:],Y_true, "bo", markersize=15,alpha=0.5 ,label="Desired Output")
-    plt.plot(X[:-1],Y, "*", markersize=7, label="Inputs")
-    plt.plot(X[1:],Y, "+", markersize=7, label="Output")
+    plt.plot(X[1:],Y_pred, "*", markersize=7, label="Output")
     plt.legend()
     title = "MSE: " + str(mse)
     plt.title(title)
@@ -103,7 +102,27 @@ with tf.Session() as sess:
         
         if iteration % 100 == 0:
             mse = loss.eval(feed_dict={X: X_batch, y: y_batch})
-            plot_batch(x_vals.flatten(),y_batch.flatten(),X_batch.flatten(),outputs,mse)
-            #print(iteration, "\tMSE: ", mse)
+            y_pred = sess.run(outputs, feed_dict={X: X_batch})
+            plot_batch(x_vals.flatten(),y_batch.flatten(),y_pred[0,:,0],mse)
 
-    #saver.save(sess, "./rnn_time_series_model")
+    saver.save(sess, "./rnn_time_series_model")
+
+with tf.Session() as sess:                          
+    saver.restore(sess, "./rnn_time_series_model")   
+    X_batch, y_batch, x_vals = ts_data.next_batch(batch_size, num_time_steps, return_batch_ts=True)
+    train_inst = np.linspace(5,5 + ts_data.resolution * (num_time_steps + 1), num_time_steps+1)
+    X_new = np.sin(np.array(train_inst[:-1].reshape(-1, num_time_steps, num_inputs)))
+    y_pred = sess.run(outputs, feed_dict={X: X_new})
+
+plt.title("Testing Model")
+
+plt.plot(train_inst[:-1], np.sin(train_inst[:-1]), "bo", markersize=15,alpha=0.5, label="Training Instance")
+
+plt.plot(train_inst[1:], np.sin(train_inst[1:]), "*", markersize=10, label="target")
+
+plt.plot(train_inst[1:], y_pred[0,:,0], "r.", markersize=10, label="prediction")
+
+plt.xlabel("Time")
+plt.legend()
+plt.tight_layout()
+
