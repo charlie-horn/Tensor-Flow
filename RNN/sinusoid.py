@@ -108,7 +108,7 @@ with tf.Session() as sess:
     saver.save(sess, "./rnn_time_series_model")
 
 with tf.Session() as sess:                          
-    saver.restore(sess, "./rnn_time_series_model")   
+    saver.restore(sess, "./rnn_time_series_model")
     X_batch, y_batch, x_vals = ts_data.next_batch(batch_size, num_time_steps, return_batch_ts=True)
     train_inst = np.linspace(5,5 + ts_data.resolution * (num_time_steps + 1), num_time_steps+1)
     X_new = np.sin(np.array(train_inst[:-1].reshape(-1, num_time_steps, num_inputs)))
