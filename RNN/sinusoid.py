@@ -103,7 +103,7 @@ with tf.Session() as sess:
         if iteration % 100 == 0:
             mse = loss.eval(feed_dict={X: X_batch, y: y_batch})
             y_pred = sess.run(outputs, feed_dict={X: X_batch})
-            plot_batch(x_vals.flatten(),y_batch.flatten(),y_pred[0,:,0],mse)
+            #plot_batch(x_vals.flatten(),y_batch.flatten(),y_pred[0,:,0],mse)
 
     saver.save(sess, "./rnn_time_series_model")
 
@@ -125,4 +125,38 @@ plt.plot(train_inst[1:], y_pred[0,:,0], "r.", markersize=10, label="prediction")
 plt.xlabel("Time")
 plt.legend()
 plt.tight_layout()
+plt.show()
+plt.close()
 
+with tf.Session() as sess:
+    saver.restore(sess, "./rnn_time_series_model")
+
+    # SEED WITH ZEROS
+    zero_seq_seed = [0. for i in range(num_time_steps)]
+    for iteration in range(len(ts_data.x_data) - num_time_steps):
+        X_batch = np.array(zero_seq_seed[-num_time_steps:]).reshape(1, num_time_steps, 1)
+        y_pred = sess.run(outputs, feed_dict={X: X_batch})
+        zero_seq_seed.append(y_pred[0, -1, 0])
+
+plt.plot(ts_data.x_data, zero_seq_seed, "b-")
+plt.plot(ts_data.x_data[:num_time_steps], zero_seq_seed[:num_time_steps], "r", linewidth=3)
+plt.xlabel("Time")
+plt.ylabel("Value")
+plt.show()
+plt.close()
+
+with tf.Session() as sess:
+    saver.restore(sess, "./rnn_time_series_model")
+
+    # SEED WITH Training Instance
+    training_instance = list(ts_data.y_true[:30])
+    for iteration in range(len(ts_data.x_data) -num_time_steps):
+        X_batch = np.array(training_instance[-num_time_steps:]).reshape(1, num_time_steps, 1)
+        y_pred = sess.run(outputs, feed_dict={X: X_batch})
+        training_instance.append(y_pred[0, -1, 0])
+
+plt.plot(ts_data.x_data, training_instance, "b-")
+plt.plot(ts_data.x_data[:num_time_steps],training_instance[:num_time_steps], "r-", linewidth=3)
+plt.xlabel("Time")
+plt.show()
+plt.close()
