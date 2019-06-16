@@ -2,8 +2,11 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+import tensorflow as tf
+tf.reset_default_graph()
 
-milk = pd.read_csv('monthly-milk-production.csv',index_col='Month')
+milk = pd.read_csv('course/04-Recurrent-Neural-Networks/monthly-milk-production.csv',index_col='Month')
 
 milk.head()
 
@@ -11,13 +14,9 @@ milk.index = pd.to_datetime(milk.index)
 
 milk.plot()
 
-milk.info()
-
 train_set = milk.head(156)
 
 test_set = milk.tail(12)
-
-from sklearn.preprocessing import MinMaxScaler
 
 scaler = MinMaxScaler()
 
@@ -36,8 +35,6 @@ def next_batch(training_data,batch_size,steps):
 
     return y_batch[:, :-1].reshape(-1, steps, 1), y_batch[:, 1:].reshape(-1, steps, 1) 
 
-import tensorflow as tf
-
 # Just one feature, the time series
 num_inputs = 1
 # Num of steps in each batch
@@ -47,9 +44,9 @@ num_neurons = 100
 # Just one output, predicted time series
 num_outputs = 1
 # learning rate
-learning_rate = 0.03 
+learning_rate = 0.001
 # how many iterations to go through (training steps), you can play with this
-num_train_iterations = 4000
+num_train_iterations = 8000
 # Size of the batch of data
 batch_size = 1
 
@@ -57,7 +54,7 @@ X = tf.placeholder(tf.float32, [None, num_time_steps, num_inputs])
 y = tf.placeholder(tf.float32, [None, num_time_steps, num_outputs])
 
 cell = tf.contrib.rnn.OutputProjectionWrapper(
-    tf.contrib.rnn.BasicLSTMCell(num_units=num_neurons, activation=tf.nn.relu),
+    tf.contrib.rnn.GRUCell(num_units=num_neurons, activation=tf.nn.relu),
     output_size=num_outputs) 
 
 outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
