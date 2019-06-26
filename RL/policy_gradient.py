@@ -79,7 +79,6 @@ discount_rate = 0.95
 with tf.Session() as sess:
     sess.run(init)
 
-
     for iteration in range(num_iterations):
         print("Currently on Iteration: {} \n".format(iteration) )
 
