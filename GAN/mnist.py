@@ -2,8 +2,8 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("../03-Convolutional-Neural-Networks/MNIST_data/",one_hot=True)
-
+mnist = input_data.read_data_sets("../course/03-Convolutional-Neural-Networks/MNIST_data/",one_hot=True)
+tf.reset_default_graph()
 def generator(z,reuse=None):
     with tf.variable_scope('gen',reuse=reuse):
         hidden1 = tf.layers.dense(inputs=z,units=128)
@@ -64,7 +64,7 @@ D_trainer = tf.train.AdamOptimizer(learning_rate).minimize(D_loss, var_list=d_va
 G_trainer = tf.train.AdamOptimizer(learning_rate).minimize(G_loss, var_list=g_vars)
 
 batch_size = 100
-epochs = 500
+epochs = 1
 init = tf.global_variables_initializer()
 saver = tf.train.Saver(var_list=g_vars)
 
@@ -105,14 +105,14 @@ with tf.Session() as sess:
         
         samples.append(gen_sample)
         
-#         saver.save(sess, './models/500_epoch_model.ckpt')
+        saver.save(sess, './models/500_epoch_model.ckpt')
 
 saver = tf.train.Saver(var_list=g_vars)
 
 new_samples = []
 with tf.Session() as sess:
     
-    saver.restore(sess,'./models/500_epoch_model.ckpt')
+    saver.restore(sess,'./course/06-Generative-Adversarial-Networks/models/500_epoch_model.ckpt')
     
     for x in range(5):
         sample_z = np.random.uniform(-1,1,size=(1,100))
@@ -120,4 +120,8 @@ with tf.Session() as sess:
         
         new_samples.append(gen_sample)
 
-plt.imshow(samples[0].reshape(28,28),cmap='Greys')
+plt.imshow(new_samples[0].reshape(28,28),cmap='Greys')
+plt.imshow(new_samples[1].reshape(28,28),cmap='Greys')
+plt.imshow(new_samples[2].reshape(28,28),cmap='Greys')
+plt.imshow(new_samples[3].reshape(28,28),cmap='Greys')
+plt.imshow(new_samples[4].reshape(28,28),cmap='Greys')
