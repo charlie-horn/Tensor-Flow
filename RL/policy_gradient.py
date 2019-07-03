@@ -74,7 +74,7 @@ env = gym.make("CartPole-v0")
 num_game_rounds = 10
 max_game_steps = 1000
 num_iterations = 250
-discount_rate = 0.95
+discount_rate = 0.8
 
 with tf.Session() as sess:
     sess.run(init)
